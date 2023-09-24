@@ -4,7 +4,6 @@ from dotenv import load_dotenv
 import os
 import requests
 import json
-import card_text
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -25,9 +24,25 @@ async def on_ready():
     print("Connected to ", count, "servers")
 
 
+def create_embed_spell(embed, data):
+    #TODO
+    return
 
-@tree.command(name="get", description="fetches information about the specified card", guild=discord.Object(id=os.getenv("TEST_GUILD")))
-async def slash(interaction: discord.Interaction, name: str):
+def create_embed_trap(embed, data):
+    #TODO
+    return
+
+def create_embed_monster(embed, data):
+    embed.set_image(url=data["card_images"][-1]["image_url"])
+    embed.add_field(name=data["name"], value=data["desc"], inline=False)
+    embed.add_field(name="{race}/{attribute}".format(race=data["race"], attribute=data["attribute"]), value="")
+    embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
+    embed.add_field(name="ATK/{attack} DEF/{defense}".format(attack=data["atk"], defense=data["def"]), value="", inline=False)
+    return
+
+
+@tree.command(name="get", description="Fetches information about the specified card", guild=discord.Object(id=os.getenv("TEST_GUILD")))
+async def get(interaction: discord.Interaction, name: str):
     print("get command called")
     #requests data from ygoprodeck database api
     response_api = requests.get("https://db.ygoprodeck.com/api/v7/cardinfo.php?name={name}".format(name=name))
@@ -35,12 +50,17 @@ async def slash(interaction: discord.Interaction, name: str):
     #TODO: if no cards were found, give a list of possible cards
     data = json.loads(data)["data"][0]
     #data now contains only the data of the first card from the search
-    to_discord = card_text.card_str.format(name=data["name"], description=data["desc"], atk=data["atk"], defense=data["def"])
 
-    #create an embeded image with the image url given from the database
+    #create an embeded image based on card type
     embed = discord.Embed()
-    embed.set_image(url=data["card_images"][0]["image_url"])
-    embed.add_field(name=data["name"], value=to_discord)
+    if(data["type"]=="Spell Card"):
+        create_embed_spell(embed, data)
+    elif(data["type"]=="Trap Card"):
+        create_embed_trap(embed, data)
+    else:
+        create_embed_monster(embed, data)
+
+
     # await interaction.channel.send(embed=embed)
     await interaction.response.send_message(embed=embed)
 
