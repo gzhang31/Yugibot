@@ -30,17 +30,18 @@ async def on_ready():
 async def slash(interaction: discord.Interaction, name: str):
     print("get command called")
     #requests data from ygoprodeck database api
-    response_api = requests.get("https://db.ygoprodeck.com/api/v7/cardinfo.php?fname={fname}".format(fname=name))
+    response_api = requests.get("https://db.ygoprodeck.com/api/v7/cardinfo.php?name={name}".format(name=name))
     data = response_api.text
+    #TODO: if no cards were found, give a list of possible cards
     data = json.loads(data)["data"][0]
-    #data now contains only the data of the first card from the fuzzy search
+    #data now contains only the data of the first card from the search
     to_discord = card_text.card_str.format(name=data["name"], description=data["desc"], atk=data["atk"], defense=data["def"])
 
     #create an embeded image with the image url given from the database
     embed = discord.Embed()
     embed.set_image(url=data["card_images"][0]["image_url"])
     embed.add_field(name=data["name"], value=to_discord)
-    await interaction.channel.send(embed=embed)
-
+    # await interaction.channel.send(embed=embed)
+    await interaction.response.send_message(embed=embed)
 
 client.run(os.getenv('TOKEN'))
