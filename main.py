@@ -33,8 +33,15 @@ def create_embed_trap(embed, data):
     return
 
 def create_embed_monster(embed, data):
-    embed.set_image(url=data["card_images"][-1]["image_url"])
-    embed.add_field(name=data["name"], value=data["desc"], inline=False)
+    embed.set_image(url=data["card_images"][0]["image_url"])
+    #default to use level. If xyz or link monster, use respective name
+    level_type = "Level "
+    if("XYZ" in data["type"]):
+        level_type = "Rank "
+    elif("Link" in data["type"]):
+        level_type = "Link-"
+    embed.add_field(name=data["name"], value="", inline=False)
+    embed.add_field(name="{level_type} {lvl}".format(level_type=level_type, lvl=data["level"]), value=data["desc"], inline=False)
     embed.add_field(name="{race}/{attribute}".format(race=data["race"], attribute=data["attribute"]), value="")
     embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
     embed.add_field(name="ATK/{attack} DEF/{defense}".format(attack=data["atk"], defense=data["def"]), value="", inline=False)
@@ -47,8 +54,12 @@ async def get(interaction: discord.Interaction, name: str):
     #requests data from ygoprodeck database api
     response_api = requests.get("https://db.ygoprodeck.com/api/v7/cardinfo.php?name={name}".format(name=name))
     data = response_api.text
-    #TODO: if no cards were found, give a list of possible cards
-    data = json.loads(data)["data"][0]
+    data = json.loads(data)
+    if("error" in data and data["error"].startswith("No card matching your query was found")):
+        output = "No cards were found "
+        await interaction.response.send_message()
+
+    data = data["data"][0]
     #data now contains only the data of the first card from the search
 
     #create an embeded image based on card type
