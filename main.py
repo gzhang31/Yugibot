@@ -52,7 +52,7 @@ def create_embed_monster(embed, data):
         level_type = "Rank "
     elif("Link" in data["type"]):
         level_type = "Link-"
-    embed.add_field(name=data["name"], value="", inline=False)
+    embed.add_field(name="{name} {icon}".format(name=data["name"], icon=attribute_icons[data["attribute"]]), value="", inline=False)
     embed.add_field(name="{level_type} {lvl}".format(level_type=level_type, lvl=data["level"]), value=data["desc"], inline=False)
     embed.add_field(name="{race}/{attribute}".format(race=data["race"], attribute=data["attribute"]), value="")
     embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
