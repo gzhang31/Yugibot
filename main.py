@@ -51,6 +51,7 @@ def add_embed_monster(embed, data):
 
 def create_card_embed(embed, data):
     embed.set_image(url=data["card_images"][-1]["image_url"])
+    #add card type specific details with specific functions
     if(data["type"]=="Spell Card"):
         add_embed_spell(embed, data)
     elif(data["type"]=="Trap Card"):
@@ -59,6 +60,7 @@ def create_card_embed(embed, data):
         add_embed_monster(embed, data)
     
     embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")), inline=False)
+    #only include banlist info if the card is on it
     if("banlist_info" in data and "ban_tcg" in data["banlist_info"]):
         embed.add_field(name="{status} {icon}".format(status=data["banlist_info"]["ban_tcg"], icon=banlist_icons[data["banlist_info"]["ban_tcg"]]), value="")
     
@@ -109,6 +111,7 @@ async def search(interaction: discord.Interaction, term: str, result_from: int =
     response_api = requests.get("https://db.ygoprodeck.com/api/v7/cardinfo.php?fname={name}".format(name=term))
     data = response_api.text
     data = json.loads(data)
+    #check if cards were found using the fuzzy search
     if("error" in data and data["error"].startswith("No card matching your query was found")):
         await interaction.response.send_message("No matching cards were found")
         return
