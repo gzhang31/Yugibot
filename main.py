@@ -4,6 +4,8 @@ from dotenv import load_dotenv
 import os
 import requests
 import json
+from icons import spell_trap_icons
+from icons import attribute_icons
 load_dotenv()
 
 intents = discord.Intents.default()
@@ -26,15 +28,23 @@ async def on_ready():
 
 def create_embed_spell(embed, data):
     #TODO
+    embed.set_image(url=data["card_images"][-1]["image_url"])
+    embed.add_field(name="{name} {icon}".format(name=data["name"], icon=attribute_icons["Spell"]), value=data["desc"], inline=False)
+    embed.add_field(name="{race} Spell {icon}".format(icon=spell_trap_icons[data["race"]], race=data["race"]), value="")
+    embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
     return
 
 def create_embed_trap(embed, data):
     #TODO
+    embed.set_image(url=data["card_images"][-1]["image_url"])
+    embed.add_field(name="{name} {icon}".format(name=data["name"], icon=attribute_icons["Trap"]), value=data["desc"], inline=False)
+    embed.add_field(name="{race} Trap {icon}".format(icon=spell_trap_icons[data["race"]], race=data["race"]), value="")
+    embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
     return
 
 def create_embed_monster(embed, data):
     embed.set_image(url=data["card_images"][-1]["image_url"])
-    embed.add_field(name=data["name"], value=data["desc"], inline=False)
+    embed.add_field(name="{name} {icon}".format(name=data["name"], icon=attribute_icons[data["attribute"]]), value=data["desc"], inline=False)
     embed.add_field(name="{race}/{attribute}".format(race=data["race"], attribute=data["attribute"]), value="")
     embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
     embed.add_field(name="ATK/{attack} DEF/{defense}".format(attack=data["atk"], defense=data["def"]), value="", inline=False)
@@ -43,7 +53,7 @@ def create_embed_monster(embed, data):
 
 @tree.command(name="get", description="Fetches information about the specified card", guild=discord.Object(id=os.getenv("TEST_GUILD")))
 async def get(interaction: discord.Interaction, name: str):
-    print("get command called")
+    print("get {name} issued".format(name=name))
     #requests data from ygoprodeck database api
     response_api = requests.get("https://db.ygoprodeck.com/api/v7/cardinfo.php?name={name}".format(name=name))
     data = response_api.text
