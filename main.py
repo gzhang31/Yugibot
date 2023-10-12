@@ -4,8 +4,7 @@ from dotenv import load_dotenv
 import os
 import requests
 import json
-from icons import spell_trap_icons
-from icons import attribute_icons
+from icons import *
 load_dotenv()
 
 FUZZY_SHOW_MAX = 5
@@ -27,34 +26,42 @@ async def on_ready():
     await tree.sync(guild=discord.Object(id=os.getenv("TEST_GUILD")))
     print("Connected to ", count, "servers")
 
-
-def create_embed_spell(embed, data):
-    embed.set_image(url=data["card_images"][-1]["image_url"])
+def add_embed_spell(embed, data):
     embed.add_field(name="{name} {icon}".format(name=data["name"], icon=attribute_icons["Spell"]), value=data["desc"], inline=False)
     embed.add_field(name="{race} Spell {icon}".format(icon=spell_trap_icons[data["race"]], race=data["race"]), value="")
-    embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
     return
 
-def create_embed_trap(embed, data):
-    embed.set_image(url=data["card_images"][-1]["image_url"])
+def add_embed_trap(embed, data):
     embed.add_field(name="{name} {icon}".format(name=data["name"], icon=attribute_icons["Trap"]), value=data["desc"], inline=False)
     embed.add_field(name="{race} Trap {icon}".format(icon=spell_trap_icons[data["race"]], race=data["race"]), value="")
-    embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
     return
 
-def create_embed_monster(embed, data):
-    embed.set_image(url=data["card_images"][0]["image_url"])
+def add_embed_monster(embed, data):
     #default to use level. If xyz or link monster, use respective name
     level_type = "Level "
     if("XYZ" in data["type"]):
         level_type = "Rank "
     elif("Link" in data["type"]):
         level_type = "Link-"
-    embed.add_field(name="# {name} {icon}".format(name=data["name"], icon=attribute_icons[data["attribute"]]), value="", inline=False)
-    embed.add_field(name="{level_type} {lvl}".format(level_type=level_type, lvl=data["level"]), value=data["desc"], inline=False)
-    embed.add_field(name="{race}/{attribute}".format(race=data["race"], attribute=data["attribute"]), value="")
-    embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")))
+    embed.add_field(name="{name} {icon}".format(name=data["name"], icon=attribute_icons[data["attribute"]]), value="", inline=False)
+    embed.add_field(name="{level_type} {lvl}".format(level_type=level_type, lvl=data["level"]), value="", inline=False)
+    embed.add_field(name="{race}/{type}".format(race=data["race"], type=data["type"][:-8]), value=data["desc"])
     embed.add_field(name="ATK/{attack} DEF/{defense}".format(attack=data["atk"], defense=data["def"]), value="", inline=False)
+    return
+
+def create_card_embed(embed, data):
+    embed.set_image(url=data["card_images"][-1]["image_url"])
+    if(data["type"]=="Spell Card"):
+        add_embed_spell(embed, data)
+    elif(data["type"]=="Trap Card"):
+        add_embed_trap(embed, data)
+    else:
+        add_embed_monster(embed, data)
+    
+    embed.add_field(name="", value="Archetype: {archetype}".format(archetype=(data["archetype"] if "archetype" in data else "None")), inline=False)
+    if("banlist_info" in data and "ban_tcg" in data["banlist_info"]):
+        embed.add_field(name="{status} {icon}".format(status=data["banlist_info"]["ban_tcg"], icon=banlist_icons[data["banlist_info"]["ban_tcg"]]), value="")
+    
     return
 
 def create_fuzzy_data_message(start, data, term):
@@ -90,13 +97,7 @@ async def card(interaction: discord.Interaction, name: str):
 
     #create an embeded image based on card type
     embed = discord.Embed()
-    if(data["type"]=="Spell Card"):
-        create_embed_spell(embed, data)
-    elif(data["type"]=="Trap Card"):
-        create_embed_trap(embed, data)
-    else:
-        create_embed_monster(embed, data)
-
+    create_card_embed(embed, data)
 
     # await interaction.channel.send(embed=embed)
     await interaction.response.send_message(embed=embed)

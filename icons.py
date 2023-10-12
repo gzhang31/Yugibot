@@ -15,4 +15,10 @@ attribute_icons = {"DARK":"<:Dark:1162128885522124911>",
                    "WATER":"<:Water:1162128877729103892>",
                    "DIVINE":"<:Divine:1162128876588249198>",
                    "Spell":"<:Spell:1162128875283820676>",
-                   "Trap":"<:Trap:1162128873123741887>"}
+                   "Trap":"<:Trap:1162128873123741887>"
+                   }
+
+banlist_icons = {"Banned":"<:Banned:1162143806729236543>",
+                 "Limited":"<:Limited:1162143805529661471>",
+                 "Semi-Limited":"<:SemiLimited:1162143804166516848>"
+                 }
